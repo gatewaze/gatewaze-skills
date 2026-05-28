@@ -23,6 +23,18 @@ The non-negotiables (ten of them) are summarised at the top of the
 SKILL.md. Each topic has a `references/<topic>.md` with the canonical
 existing-code pointers and the recipe for new work.
 
+### [`gatewaze-ui/`](./gatewaze-ui/SKILL.md)
+
+Admin UI layout conventions. How to lay out any admin page with the
+shared `WorkspaceLayout` primitive (hero, primary tabs, the
+secondary-coloured breadcrumb "flag", and sub-tabs), and a decision
+tree for which of those levels to render based on the data's schema
+shape — flat list (hero only), entity-with-sections (hero + primary
+tabs), or nested sub-entity drill-in (hero + tabs + breadcrumb flag +
+sub-tabs, e.g. newsletters → editions, meetups → series). Covers the
+hero-everywhere rule, title/breadcrumb conventions, primary vs
+secondary theming, and full-bleed editor handling.
+
 ## How to use these skills
 
 ### Symlink into `~/.claude/skills/`

@@ -25,7 +25,7 @@ plugins/gatewaze-skills/
 
 ### [`production-readiness/`](./plugins/gatewaze-skills/skills/production-readiness/SKILL.md)
 
-Guardrails distilled from the Phase 1–4 production-hardening pass on
+Guardrails distilled from the Phase 1-4 production-hardening pass on
 the gatewaze monorepo. Encodes the security boundaries (PostgREST
 filter injection, mass assignment, ICS CR/LF, rate-limiting,
 path-param validation), the TypeScript patterns we settled on
@@ -44,7 +44,7 @@ Admin UI layout conventions. How to lay out any admin page with the
 shared `WorkspaceLayout` primitive (hero, primary tabs, the
 secondary-coloured breadcrumb "flag", and sub-tabs), and a decision
 tree for which of those levels to render based on the data's schema
-shape — flat list (hero only), entity-with-sections (hero + primary
+shape: flat list (hero only), entity-with-sections (hero + primary
 tabs), or nested sub-entity drill-in (hero + tabs + breadcrumb flag +
 sub-tabs, e.g. newsletters → editions, meetups → series). Covers the
 hero-everywhere rule, title/breadcrumb conventions, primary vs
@@ -75,7 +75,7 @@ Add the marketplace once, then install the bundled plugin:
 
 The skills are namespaced under the plugin, e.g. type
 `/gatewaze-skills:production-readiness` to invoke one
-explicitly. You don't have to invoke explicitly — once installed, the
+explicitly. You don't have to invoke explicitly; once installed, the
 model can decide to load a SKILL.md when the task touches one of its
 trigger areas (Supabase queries, route handlers, React components,
 module edits, etc.).
@@ -102,8 +102,8 @@ to its `.claude/settings.json`:
 ## Updating a skill
 
 This repo is intentionally evolving. When a new pattern emerges
-during gatewaze work — a new security boundary, a new typing
-challenge, a new lint configuration — add a section to the relevant
+during gatewaze work (a new security boundary, a new typing
+challenge, a new lint configuration), add a section to the relevant
 `references/<topic>.md` (or create a new reference file and link it
 from `SKILL.md`).
 
@@ -112,7 +112,7 @@ commit is treated as a new version and contributors pick up skill
 updates automatically (run `/plugin marketplace update` to refresh).
 
 The existing fixes that motivated each rule are cited by file path
-and commit hash. When you add a new rule, follow the same format —
+and commit hash. When you add a new rule, follow the same format;
 it's the difference between a guideline and an enforceable
 convention.
 
@@ -121,7 +121,7 @@ convention.
 - One skill per directory under `plugins/gatewaze-skills/skills/`.
 - `SKILL.md` is the entry point (frontmatter must include `name` and
   `description`).
-- `references/` holds topic-specific deep-dives — one file per
+- `references/` holds topic-specific deep-dives: one file per
   concern, linked from the SKILL.md decision tree.
 - Don't bundle binaries or large assets; link to source files in the
   gatewaze repo by path.

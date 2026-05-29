@@ -35,6 +35,18 @@ sub-tabs, e.g. newsletters → editions, meetups → series). Covers the
 hero-everywhere rule, title/breadcrumb conventions, primary vs
 secondary theming, and full-bleed editor handling.
 
+### [`gatewaze-modules/`](./gatewaze-modules/SKILL.md)
+
+Module development workflow. The cardinal rule: edit the canonical
+source in the module's own repo (`gatewaze-modules` /
+`lf-gatewaze-modules`), never the gitignored, generated
+`.gatewaze-modules/` staging dir in the host repo. Covers where each
+module lives, module anatomy (`module.json` / `index.ts` /
+`admin` / `portal` / `api` / `functions` / `migrations`), how to
+confirm you're editing the real file, the type-check caveat
+(module `tsc` doesn't cover admin/portal pages), and the
+migrate / deploy / commit workflow.
+
 ## How to use these skills
 
 ### Symlink into `~/.claude/skills/`

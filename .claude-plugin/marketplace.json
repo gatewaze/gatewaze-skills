@@ -1,0 +1,14 @@
+{
+  "name": "gatewaze-skills",
+  "owner": {
+    "name": "Gatewaze"
+  },
+  "description": "Agent skills for developing the Gatewaze monorepo.",
+  "plugins": [
+    {
+      "name": "gatewaze-skills",
+      "source": "./plugins/gatewaze-skills",
+      "description": "Gatewaze monorepo development skills: production readiness, admin UI conventions, and module workflow."
+    }
+  ]
+}

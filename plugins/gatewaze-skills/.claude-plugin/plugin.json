@@ -1,0 +1,7 @@
+{
+  "name": "gatewaze-skills",
+  "description": "Gatewaze monorepo development skills: production readiness, admin UI conventions, and module workflow.",
+  "author": {
+    "name": "Gatewaze"
+  }
+}

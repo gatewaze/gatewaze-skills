@@ -1,13 +1,29 @@
 # gatewaze-skills
 
 Agent skills for working on the [Gatewaze](https://github.com/gatewaze/gatewaze)
-monorepo. Each subdirectory is a self-contained Agent Skill — a `SKILL.md`
-plus a `references/` directory of topic-specific deep-dives — that an AI
-coding agent loads on demand.
+monorepo, packaged as a **plugin marketplace** so every contributor gets the
+same skills without manual setup.
+
+The repo is one marketplace (`.claude-plugin/marketplace.json`) exposing one
+plugin (`gatewaze-skills`) that bundles all the skills. Each skill is a
+`SKILL.md` plus an optional `references/` directory of topic-specific
+deep-dives that an AI coding agent loads on demand.
+
+## Layout
+
+```
+.claude-plugin/marketplace.json          # marketplace catalog
+plugins/gatewaze-skills/
+  .claude-plugin/plugin.json             # plugin manifest
+  skills/
+    gatewaze-production-readiness/
+    gatewaze-ui/
+    gatewaze-modules/
+```
 
 ## Skills in this repo
 
-### [`gatewaze-production-readiness/`](./gatewaze-production-readiness/SKILL.md)
+### [`gatewaze-production-readiness/`](./plugins/gatewaze-skills/skills/gatewaze-production-readiness/SKILL.md)
 
 Guardrails distilled from the Phase 1–4 production-hardening pass on
 the gatewaze monorepo. Encodes the security boundaries (PostgREST
@@ -22,7 +38,7 @@ The non-negotiables (ten of them) are summarised at the top of the
 SKILL.md. Each topic has a `references/<topic>.md` with the canonical
 existing-code pointers and the recipe for new work.
 
-### [`gatewaze-ui/`](./gatewaze-ui/SKILL.md)
+### [`gatewaze-ui/`](./plugins/gatewaze-skills/skills/gatewaze-ui/SKILL.md)
 
 Admin UI layout conventions. How to lay out any admin page with the
 shared `WorkspaceLayout` primitive (hero, primary tabs, the
@@ -34,7 +50,7 @@ sub-tabs, e.g. newsletters → editions, meetups → series). Covers the
 hero-everywhere rule, title/breadcrumb conventions, primary vs
 secondary theming, and full-bleed editor handling.
 
-### [`gatewaze-modules/`](./gatewaze-modules/SKILL.md)
+### [`gatewaze-modules/`](./plugins/gatewaze-skills/skills/gatewaze-modules/SKILL.md)
 
 Module development workflow. The cardinal rule: edit the canonical
 source in the module's own repo (`gatewaze-modules` /
@@ -48,28 +64,40 @@ migrate / deploy / commit workflow.
 
 ## How to use these skills
 
-### Symlink into your agent's skills directory
+### Recommended: install via the marketplace
 
-Each skill's directory is a symlink target. To make a skill available
-across all sessions, symlink it into your coding agent's skills
-directory:
+Add the marketplace once, then install the bundled plugin:
 
-```bash
-ln -sf "$(pwd)/gatewaze-production-readiness" ~/.claude/skills/gatewaze-production-readiness
+```shell
+/plugin marketplace add gatewaze/gatewaze-skills
+/plugin install gatewaze-skills@gatewaze-skills
 ```
 
-Your agent will discover it on next session start.
+The skills are namespaced under the plugin, e.g. type
+`/gatewaze-skills:gatewaze-production-readiness` to invoke one
+explicitly. You don't have to invoke explicitly — once installed, the
+model can decide to load a SKILL.md when the task touches one of its
+trigger areas (Supabase queries, route handlers, React components,
+module edits, etc.).
 
-### Invoke explicitly
+### Make it automatic for a whole repo
 
-Once a skill is registered in your agent's skills directory, type
-`/gatewaze-production-readiness` to invoke it. The model will load
-the SKILL.md and pull references on demand.
+A consuming repo can register this marketplace and auto-enable the
+plugin for everyone who trusts the project folder, by committing this
+to its `.claude/settings.json`:
 
-You don't have to invoke explicitly — once the skill is symlinked,
-the model can decide to read the SKILL.md if the task touches one of
-the trigger areas (Supabase queries, route handlers, React
-components, etc.).
+```json
+{
+  "extraKnownMarketplaces": {
+    "gatewaze-skills": {
+      "source": { "source": "github", "repo": "gatewaze/gatewaze-skills" }
+    }
+  },
+  "enabledPlugins": {
+    "gatewaze-skills@gatewaze-skills": true
+  }
+}
+```
 
 ## Updating a skill
 
@@ -79,6 +107,10 @@ challenge, a new lint configuration — add a section to the relevant
 `references/<topic>.md` (or create a new reference file and link it
 from `SKILL.md`).
 
+The plugin manifest deliberately omits `version`, so every pushed
+commit is treated as a new version and contributors pick up skill
+updates automatically (run `/plugin marketplace update` to refresh).
+
 The existing fixes that motivated each rule are cited by file path
 and commit hash. When you add a new rule, follow the same format —
 it's the difference between a guideline and an enforceable
@@ -86,7 +118,7 @@ convention.
 
 ## Repo conventions
 
-- One skill per top-level directory.
+- One skill per directory under `plugins/gatewaze-skills/skills/`.
 - `SKILL.md` is the entry point (frontmatter must include `name` and
   `description`).
 - `references/` holds topic-specific deep-dives — one file per

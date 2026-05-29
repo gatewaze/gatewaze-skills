@@ -1,5 +1,5 @@
 ---
-name: gatewaze-production-readiness
+name: production-readiness
 description: >
   Guardrails distilled from the multi-week production-hardening pass on the
   Gatewaze monorepo. Invoke when working on Gatewaze (admin / api / portal /

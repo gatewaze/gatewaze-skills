@@ -1,5 +1,5 @@
 ---
-name: gatewaze-ui
+name: ui
 description: >
   Gatewaze admin UI layout conventions. Invoke when creating or modifying any
   admin page in the Gatewaze monorepo (packages/admin) or a Gatewaze module's

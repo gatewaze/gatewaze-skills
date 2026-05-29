@@ -1,5 +1,5 @@
 ---
-name: gatewaze-modules
+name: modules
 description: >
   Gatewaze module development workflow. Invoke when fixing or building anything
   inside a Gatewaze module — admin UI, portal UI, api routes, edge functions,
@@ -91,7 +91,7 @@ modules/<name>/
 
 - Admin pages are bundled into `packages/admin` by the vite plugin; inside them
   the `@/` alias resolves to `packages/admin/src`. For admin page layout, follow
-  the **gatewaze-ui** skill (WorkspaceLayout: hero, tabs, breadcrumb, sub-tabs).
+  the **ui** skill (WorkspaceLayout: hero, tabs, breadcrumb, sub-tabs).
 - Routes/features are declared in `index.ts` (`adminRoutes` with `path`,
   `component`, `requiredFeature`; `adminNavItems` for the left nav).
 

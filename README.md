@@ -16,14 +16,14 @@ deep-dives that an AI coding agent loads on demand.
 plugins/gatewaze-skills/
   .claude-plugin/plugin.json             # plugin manifest
   skills/
-    gatewaze-production-readiness/
-    gatewaze-ui/
-    gatewaze-modules/
+    production-readiness/
+    ui/
+    modules/
 ```
 
 ## Skills in this repo
 
-### [`gatewaze-production-readiness/`](./plugins/gatewaze-skills/skills/gatewaze-production-readiness/SKILL.md)
+### [`production-readiness/`](./plugins/gatewaze-skills/skills/production-readiness/SKILL.md)
 
 Guardrails distilled from the Phase 1–4 production-hardening pass on
 the gatewaze monorepo. Encodes the security boundaries (PostgREST
@@ -38,7 +38,7 @@ The non-negotiables (ten of them) are summarised at the top of the
 SKILL.md. Each topic has a `references/<topic>.md` with the canonical
 existing-code pointers and the recipe for new work.
 
-### [`gatewaze-ui/`](./plugins/gatewaze-skills/skills/gatewaze-ui/SKILL.md)
+### [`ui/`](./plugins/gatewaze-skills/skills/ui/SKILL.md)
 
 Admin UI layout conventions. How to lay out any admin page with the
 shared `WorkspaceLayout` primitive (hero, primary tabs, the
@@ -50,7 +50,7 @@ sub-tabs, e.g. newsletters → editions, meetups → series). Covers the
 hero-everywhere rule, title/breadcrumb conventions, primary vs
 secondary theming, and full-bleed editor handling.
 
-### [`gatewaze-modules/`](./plugins/gatewaze-skills/skills/gatewaze-modules/SKILL.md)
+### [`modules/`](./plugins/gatewaze-skills/skills/modules/SKILL.md)
 
 Module development workflow. The cardinal rule: edit the canonical
 source in the module's own repo (`gatewaze-modules` /
@@ -74,7 +74,7 @@ Add the marketplace once, then install the bundled plugin:
 ```
 
 The skills are namespaced under the plugin, e.g. type
-`/gatewaze-skills:gatewaze-production-readiness` to invoke one
+`/gatewaze-skills:production-readiness` to invoke one
 explicitly. You don't have to invoke explicitly — once installed, the
 model can decide to load a SKILL.md when the task touches one of its
 trigger areas (Supabase queries, route handlers, React components,

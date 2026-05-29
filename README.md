@@ -1,10 +1,9 @@
 # gatewaze-skills
 
-Claude skills for working on the [Gatewaze](https://github.com/gatewaze/gatewaze)
-monorepo. Each subdirectory is a self-contained
-[Claude skill](https://docs.claude.com/en/docs/claude-code/skills)
-with a `SKILL.md` plus a `references/` directory of topic-specific
-deep-dives.
+Agent skills for working on the [Gatewaze](https://github.com/gatewaze/gatewaze)
+monorepo. Each subdirectory is a self-contained Agent Skill — a `SKILL.md`
+plus a `references/` directory of topic-specific deep-dives — that an AI
+coding agent loads on demand.
 
 ## Skills in this repo
 
@@ -49,20 +48,21 @@ migrate / deploy / commit workflow.
 
 ## How to use these skills
 
-### Symlink into `~/.claude/skills/`
+### Symlink into your agent's skills directory
 
 Each skill's directory is a symlink target. To make a skill available
-across all sessions:
+across all sessions, symlink it into your coding agent's skills
+directory:
 
 ```bash
 ln -sf "$(pwd)/gatewaze-production-readiness" ~/.claude/skills/gatewaze-production-readiness
 ```
 
-Claude will discover it on next session start.
+Your agent will discover it on next session start.
 
 ### Invoke explicitly
 
-If a skill is registered in your `~/.claude/skills/`, type
+Once a skill is registered in your agent's skills directory, type
 `/gatewaze-production-readiness` to invoke it. The model will load
 the SKILL.md and pull references on demand.
 

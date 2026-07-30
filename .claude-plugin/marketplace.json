@@ -9,6 +9,18 @@
       "name": "gatewaze-skills",
       "source": "./plugins/gatewaze-skills",
       "description": "Gatewaze monorepo development skills: production readiness, admin UI conventions, and module workflow."
+    },
+    {
+      "name": "pragma",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/peteski22/agent-pragma.git",
+        "path": "plugins/pragma",
+        "sha": "7a20b7995265d6a2b8fc4bff3142d0be0da9cd77"
+      },
+      "version": "3.2.3",
+      "category": "development",
+      "description": "Pragma validation suite (deterministic linting hooks, semantic security/review/state-machine/error-handling validators, and a multi-LLM council). Re-published here PINNED to an exact commit SHA so every Gatewaze clone installs a vetted, immutable revision rather than floating on upstream peteski22/agent-pragma main."
     }
   ]
 }

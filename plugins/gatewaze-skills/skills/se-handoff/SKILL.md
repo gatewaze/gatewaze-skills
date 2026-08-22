@@ -15,6 +15,15 @@ or straight at implementation.
 
 1. **The spec** — usually the document just written in this session (a file, or the conversation's
    final spec text). If ambiguous, ask which file/text is the spec.
+   **No spec yet? Write it first — that is part of this skill.** If the user invokes the handoff
+   with only an idea or feature description, author the spec in-session before doing anything with
+   GitHub: gather the goal, scope/non-goals, constraints, and concrete acceptance criteria (ask the
+   minimum questions needed — one batched round), then draft a complete spec (Problem, Approach,
+   Scope, Acceptance criteria, Open questions) and show it for approval. Iterate until the user is
+   happy — this authoring happens locally on the user's plan precisely so the SE module never bills
+   for it. Save the approved spec to a file: `specs/spec-<slug>.md` in the roadmap repo
+   (`~/Git/danthebaker/gatewaze-roadmap`) for gatewaze work — commit and push it there — or a
+   sensible location the user names for other repos. Then continue with the handoff below.
 2. **Target repo** — the GitHub repo the issue goes to (infer from cwd's `git remote get-url origin`
    when inside a repo; otherwise ask). Works for any repo the SE module watches (gatewaze org and
    linuxfoundation LFX repos alike).

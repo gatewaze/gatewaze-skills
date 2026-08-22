@@ -13,6 +13,18 @@ or straight at implementation.
 
 ## Entry points
 
+- **PR handoff** ("/se-handoff this PR", "hand off the PR", or invoked after creating a PR in this
+  session): no spec or issue involved — the SE module ADOPTS an existing pull request and its
+  monitor takes over from here: it watches CI and pushes fix commits for failures, and responds to
+  review feedback with revise cycles — from automated reviewers and human reviewers alike. Steps:
+  identify the PR (current branch's PR via `gh pr view --json number,url` in the repo, else ask),
+  confirm with the user ("Hand off <repo>#<n> — SE will monitor CI and reviews and push fixes.
+  Continue?"), then apply the adoption label:
+  `gh pr edit <number> --repo <owner>/<repo> --add-label "agent:adopt"`
+  (create the label first if missing: `gh label create "agent:adopt" --repo <owner>/<repo> --color 5319e7 || true`).
+  Print the PR URL and note the run appears in the SE admin within ~a minute. The label must be
+  applied by a repo collaborator the module trusts — that is you, via your gh auth.
+
 - **Bare invocation** (user runs `/se-handoff` with no spec, no idea, nothing in-session to point
   at): start by asking what they want to hand off — "What should the SE module build? Describe the
   feature/fix in a sentence or two, or point me at a spec." From their answer, flow into spec

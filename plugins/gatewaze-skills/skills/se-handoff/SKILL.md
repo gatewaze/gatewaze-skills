@@ -11,6 +11,15 @@ spec into a GitHub issue that the SE module's intake understands, so the run **s
 spec-review phases entirely** (≈ a third of a run's API cost) and starts from the human spec gate
 or straight at implementation.
 
+## Entry points
+
+- **Bare invocation** (user runs `/se-handoff` with no spec, no idea, nothing in-session to point
+  at): start by asking what they want to hand off — "What should the SE module build? Describe the
+  feature/fix in a sentence or two, or point me at a spec." From their answer, flow into spec
+  authoring below.
+- **Idea only**: author the spec (below), then hand off.
+- **Spec exists** (in-session document or file): skip straight to the handoff.
+
 ## Inputs to establish (ask only for what's missing)
 
 1. **The spec** — usually the document just written in this session (a file, or the conversation's

@@ -52,12 +52,20 @@ consequence — but lead with the consequence, not the rule.
 
 ## Step 1: Establish the range and read properly
 
+The caller normally pins the range as two full SHAs (`base_sha`, `target_sha`).
+When it does, review exactly `git diff <base_sha> <target_sha>`, read every file
+with `git show <target_sha>:<path>` (deleted code with `git show <base_sha>:<path>`),
+and never read the working tree or run anything that touches it. The checkout
+may be shared with other reviewers and must stay frozen.
+
+Only when no range is pinned, derive one yourself:
+
 ```bash
 git rev-parse --show-toplevel
 git diff --stat $(git merge-base origin/main HEAD)...HEAD 2>/dev/null || git diff --stat
 ```
 
-If the caller pins a range, use it verbatim. Then, before any analysis:
+Then, before any analysis:
 
 1. **Read the whole post-change file**, not the hunk. Most findings here live in the
    interaction between a changed line and an unchanged one elsewhere in the file.

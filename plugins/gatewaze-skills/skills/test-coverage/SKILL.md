@@ -37,15 +37,25 @@ three things that matter passes it.
 
 ## Step 1: Establish the diff
 
+The caller normally pins the range as two full SHAs (`base_sha`, `target_sha`).
+When it does, use `git diff --name-only --diff-filter=ACMRT <base_sha> <target_sha>`
+for the file list, read every source and test file with `git show <target_sha>:<path>`,
+and never read the working tree or run the suite. The checkout may be shared with
+other reviewers and must stay frozen.
+
+Only when no range is pinned, derive one yourself:
+
 ```bash
 git rev-parse --show-toplevel
 { git diff --name-only --diff-filter=ACMRT origin/main...HEAD 2>/dev/null \
   || git diff --name-only --diff-filter=ACMRT HEAD~1; } | sort -u
 ```
 
-If the caller pins a range, use it verbatim rather than re-deriving one. Read the
-full post-change file for every changed source file — a diff hunk does not show you
-the sibling branches you are about to compare against.
+Read the full post-change file for every changed source file — a diff hunk does not
+show you the sibling branches you are about to compare against. When finding test
+files by convention (below), use `git ls-tree -r --name-only <target_sha>` and
+`git grep <pattern> <target_sha> -- '*.test.ts' '*.spec.ts'` rather than `ls`,
+`fd` or `find`, which read the working tree.
 
 ## Step 2: The inversion test
 

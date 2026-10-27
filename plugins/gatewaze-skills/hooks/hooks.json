@@ -1,0 +1,29 @@
+{
+  "description": "Review hooks for repos that adopt /gatewaze-skills:review-round in their CLAUDE.md: nudge a per-commit security pass after `git commit`, and refuse `git push` / `gh pr create` on a branch without a review stamp.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/after-commit.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/before-push.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

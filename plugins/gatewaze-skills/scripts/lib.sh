@@ -100,10 +100,10 @@ hook_git_dir() {
 # $1 = path, $2 = base for a relative path. Refuses unexpanded shell syntax.
 resolve_path() {
   local p="$1"
+  # shellcheck disable=SC2088  # the quoted tilde patterns are literal on purpose
   case "$p" in
     *'$'*|*'`'*) return 1 ;;
     '~') p=$HOME ;;
-    # shellcheck disable=SC2088  # the literal pattern is the point
     '~/'*) p="$HOME/${p#\~/}" ;;
     /*) ;;
     *) p="$2/$p" ;;

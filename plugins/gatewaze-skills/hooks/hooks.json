@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/after-commit.sh\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       }
@@ -20,7 +20,7 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/before-push.sh\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       }

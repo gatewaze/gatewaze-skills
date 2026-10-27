@@ -55,9 +55,11 @@ September 2026.
    on the command bypasses it for humans and emergencies.
 
 Both hooks are opt-in per repo. They do nothing unless the repo's root
-`CLAUDE.md` mentions `gatewaze-skills:review-round`. They govern Claude Code
+`CLAUDE.md` names `/gatewaze-skills:review-round`. They govern Claude Code
 sessions only; a person committing from a terminal is unaffected, so git hooks
-and CI remain the gates for humans.
+and CI remain the gates for humans. The stamp is a plain file the agent could
+write by hand, which `CLAUDE.md` forbids; the gate stops the round being
+forgotten, it does not resist a session that sets out to skip it.
 
 ## Skills in this repo
 

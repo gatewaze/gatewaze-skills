@@ -134,14 +134,19 @@ Then write the stamp. The plugin's `before-push` hook refuses `git push` and
 
 ```bash
 d="$(git rev-parse --absolute-git-dir)/gatewaze-review"
-mkdir -p "$d"
-git rev-parse HEAD > "$d/$(git symbolic-ref --short HEAD | sed 's#/#__#g')"
+mkdir -m 700 -p "$d"
+git rev-parse HEAD > "$d/$(git symbolic-ref --short HEAD | sed -e 's/%/%25/g' -e 's#/#%2F#g')"
 ```
 
 The stamp records HEAD after the fix commit. Preflight may add commits after
 it, and the gate accepts those when their subject starts with
-`<type>(preflight):`. Any other commit after the stamp, or a rewrite of the
-branch, makes the gate refuse until the round is run again.
+`<type>(preflight):`, up to five commits in all. Any other commit after the
+stamp, or a rewrite of the branch, makes the gate refuse until the round is
+run again. The gate also refuses a push chained with a commit, switch, merge
+or similar in the same command, so push on its own line.
+
+The stamp is not tamper-proof. Writing it without a complete round is the one
+way to defeat the gate, and CLAUDE.md forbids it.
 
 Report to the developer: the range, which reviewers ran, what each found, what
 you accepted and rejected and why, and the fix commit SHA (or that none was

@@ -15,13 +15,73 @@ deep-dives that an AI coding agent loads on demand.
 .claude-plugin/marketplace.json          # marketplace catalog
 plugins/gatewaze-skills/
   .claude-plugin/plugin.json             # plugin manifest
+  hooks/hooks.json                       # Claude Code hooks (after-commit nudge, before-push gate)
+  scripts/                               # the hook scripts
   skills/
+    review-round/
+    evidence-review/
+    test-coverage/
+    preflight/
     production-readiness/
     ui/
     modules/
+    gatewaze-memory/
+    se-handoff/
 ```
 
+## The review lifecycle
+
+A branch gets one local review round before it is pushed, and a security pass
+after every commit. The repo's `CLAUDE.md` carries a short "Pre-PR review"
+section that names `/gatewaze-skills:review-round`; the rules live in the skill
+so repos cannot drift. The shape follows the one the LFX repos adopted in
+September 2026.
+
+1. After each `git commit` the agent runs, the `after-commit` hook asks the
+   session to run `pragma:security` on exactly that commit, pinned to the SHA
+   and report-only. Confirmed findings go in a `fix(security):` commit.
+2. When the branch is complete, `/gatewaze-skills:review-round` pins the branch
+   range as two full SHAs and launches the reviewers in parallel as background
+   subagents: `pragma:security`, `evidence-review`, `test-coverage`, and
+   `pragma:typescript-style` when TypeScript changed. Each reads files with
+   `git show`, never the working tree, and only reports. The main session
+   verifies every finding and lands all accepted ones in one `fix(review):`
+   commit, then writes a review stamp under the repo's git directory.
+3. `/gatewaze-skills:preflight` runs the deterministic checks (typecheck, lint,
+   build, tests, commit shape) and commits fixes as `fix(preflight):`.
+4. The `before-push` hook refuses `git push` and `gh pr create` on a feature
+   branch unless the stamp exists, the branch was not rewritten after it, and
+   every later commit is a `(review)` or `(preflight)` fix. `GW_REVIEW_SKIP=1`
+   on the command bypasses it for humans and emergencies.
+
+Both hooks are opt-in per repo. They do nothing unless the repo's root
+`CLAUDE.md` names `/gatewaze-skills:review-round`. They govern Claude Code
+sessions only; a person committing from a terminal is unaffected, so git hooks
+and CI remain the gates for humans. The stamp is a plain file the agent could
+write by hand, which `CLAUDE.md` forbids; the gate stops the round being
+forgotten, it does not resist a session that sets out to skip it.
+
 ## Skills in this repo
+
+### [`review-round/`](./plugins/gatewaze-skills/skills/review-round/SKILL.md)
+
+The one local review round, described above. Pins the range, launches the
+reviewers, judges, one fix commit, writes the stamp.
+
+### [`evidence-review/`](./plugins/gatewaze-skills/skills/evidence-review/SKILL.md)
+
+Adversarial review that ships only findings it can prove at `file:line` by
+tracing cause to consequence. Its highest-yield check is sibling divergence:
+one module doing correctly what the module beside it does not.
+
+### [`test-coverage/`](./plugins/gatewaze-skills/skills/test-coverage/SKILL.md)
+
+The inversion test. For every new condition, invert it and ask which existing
+test fails. If none would, the branch is unpinned.
+
+### [`preflight/`](./plugins/gatewaze-skills/skills/preflight/SKILL.md)
+
+Deterministic checks only, run after the review round and before the push.
 
 ### [`production-readiness/`](./plugins/gatewaze-skills/skills/production-readiness/SKILL.md)
 
@@ -109,7 +169,17 @@ from `SKILL.md`).
 
 The plugin manifest deliberately omits `version`, so every pushed
 commit is treated as a new version and contributors pick up skill
-updates automatically (run `/plugin marketplace update` to refresh).
+updates automatically (run `/plugin marketplace update gatewaze-skills`
+to refresh; a stale local copy is the usual reason a skill named in a
+repo's `CLAUDE.md` fails to load).
+
+To check the hook scripts without a Claude session, pipe a hook event at
+them:
+
+```shell
+printf '{"tool_input":{"command":"git push origin HEAD"}}' \
+  | bash plugins/gatewaze-skills/scripts/before-push.sh; echo "exit $?"
+```
 
 The existing fixes that motivated each rule are cited by file path
 and commit hash. When you add a new rule, follow the same format;

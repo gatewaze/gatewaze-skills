@@ -1,156 +1,122 @@
 ---
 name: preflight
 description: >
-  Pre-submission self-review for any Gatewaze repo. Run it BEFORE you consider a
-  change done — after you finish editing, before the diff is handed off for a PR.
-  Phase 1 runs the repo's own mechanical checks (typecheck, lint, build, format)
-  and auto-fixes what is safely auto-fixable; Phase 2 reviews the diff against the
-  repo's CLAUDE.md and .claude/rules (security boundaries, mass-assignment, shell
-  safety, secrets) and reports what a human reviewer would otherwise catch. Adapts
-  to whatever the repo actually declares — it reads the repo's rules, it does not
-  assume a fixed toolchain. Especially useful for autonomous agents whose work
-  goes straight to a pull request.
+  Deterministic pre-push checks for any Gatewaze repo. Run it after the review
+  round (/gatewaze-skills:review-round) has landed its fix commit and before you
+  push. It runs the repo's own mechanical checks (typecheck, lint, format,
+  build, tests) and auto-fixes what is safely auto-fixable, then verifies the
+  commits are shaped right (signed, signed off, conventional subjects). It is
+  not a review: rule-based and judgement findings belong to the review round.
+  Adapts to whatever the repo actually declares in its package.json scripts and
+  CLAUDE.md. Pass --report-only to run without writing fixes.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
-# Preflight — self-review before you hand off a change
+# Preflight
 
-You have finished editing and are about to declare the work done (an autonomous
-run will open a PR from it; a human contributor is about to commit). This is the
-last cheap moment to catch what CI or a reviewer would bounce. Run both phases.
+You have finished the review round and are about to push. Every check here is
+shell-driven, no judgement calls. Convention and pattern review is owned by
+`/gatewaze-skills:review-round` and does not run again here.
 
-**This skill is repo-agnostic by design.** It does not hardcode a toolchain — it
-reads the repo's *own* working agreement and scripts and runs those. The single
-most important input is the repo's `CLAUDE.md` (and any `.claude/rules/*.md`);
-everything below is how to apply it, not a substitute for it.
+This skill is repo-agnostic by design. It reads the repo's own working
+agreement and scripts and runs those. The inputs are the repo's `CLAUDE.md`,
+its `.claude/rules/lint-and-ci.md` if present, and the `scripts` block of each
+`package.json`.
 
-**Modes:**
+Modes:
 
-- **Default** — run both phases. Phase 1 auto-fixes the safely-mechanical things
-  (formatting, import order, obvious lint autofixes). Phase 2 is report-only.
-- **`--skip-review`** — Phase 1 only. Use mid-development to just check build/lint.
-- **"report only" / "dry run"** — Phase 1 reports without writing fixes.
+- Default. Run every check and auto-fix the safely mechanical things
+  (formatting, import order, lint autofixes).
+- `--report-only`. Run every check, write nothing.
 
-**Non-negotiable:** never make a check pass by weakening it. Do not add
-`// eslint-disable`, `@ts-ignore`, `--no-verify`, `continue-on-error`, `.skip`,
-or delete an assertion to get to green. Fix the code, or report the failure as
-unresolved. Disabling a gate to pass is itself a Phase 2 finding.
+Never make a check pass by weakening it. Do not add `eslint-disable`,
+`@ts-ignore`, `--no-verify`, `continue-on-error`, `.skip`, or delete an
+assertion to get to green. Fix the code, or report the failure as unresolved.
 
----
-
-## Step 0: Read the repo's rules
+## Step 0: Read the repo's checks
 
 ```bash
-git rev-parse --show-toplevel   # confirm which repo you are in
+git rev-parse --show-toplevel
+git rev-parse --abbrev-ref HEAD
+git status --porcelain
+git diff --stat "$(git merge-base origin/main HEAD)...HEAD"
 ```
 
-For **each** writable repo in the workspace:
+Read `CLAUDE.md` and `.claude/rules/lint-and-ci.md` for the declared check
+commands and any known exceptions (e.g. a package whose lint is a deliberate
+no-op). Read each changed package's `package.json` scripts. Run what the repo
+declares, nothing it does not.
 
-1. Read its `CLAUDE.md` at the repo root — this is the contract. Note anything it
-   lists under "never do", "security", or a commit/push checklist.
-2. Read every `.claude/rules/*.md`. In this monorepo the security boundaries live
-   in `.claude/rules/security-boundaries.md` and the lint/CI baseline in
-   `.claude/rules/lint-and-ci.md`. A rule file with a `paths:` frontmatter only
-   applies to files matching that glob — apply the most specific match to each
-   changed file.
-3. Read `package.json` "scripts" to discover the actual check commands (the names
-   below are the common ones; use what the repo declares).
+If the tree is dirty, stop and tell the developer. Preflight runs on committed
+work.
 
-Everything after this adapts to what you just read.
+## Step 1: Mechanical checks
 
----
+Scope to the packages the branch touched. In the Gatewaze monorepo the usual
+commands are:
 
-# Phase 1: Mechanical checks (auto-fix where safe)
-
-Scope the checks to what changed. Establish the diff first:
-
-```bash
-git status
-git diff --stat $(git merge-base origin/main HEAD)...HEAD 2>/dev/null || git diff --stat
-```
-
-Run the repo's declared checks. In the Gatewaze monorepo these are typically:
-
-| Check | Typical command | Auto-fix? |
-|-------|-----------------|-----------|
-| Typecheck | `pnpm -r typecheck` (or per-package) | No — fix the code |
-| Lint | `pnpm -r lint` | Partially — `eslint --fix` for import-order/unused; logic issues by hand |
+| Check | Typical command | Auto-fix |
+| --- | --- | --- |
+| Typecheck | `pnpm --filter <pkg> typecheck` | No. Fix the code |
+| Lint | `pnpm --filter <pkg> lint` | Partly. `eslint --fix` for import order and unused imports; logic errors by hand |
 | Format | the repo's formatter, if one is configured | Yes |
-| Build | `pnpm --filter <pkg> build` | No — fix the code |
-| Tests | `pnpm --filter <pkg> test` | No — fix the code or the test if the behaviour legitimately changed |
+| Build | `pnpm --filter <pkg> build` | No. Fix the code |
+| Tests | `pnpm --filter <pkg> test` | No. Fix the code, or the test if the behaviour changed on purpose |
+| Shell-call audit | `pnpm exec tsx scripts/audit-shell-calls.ts` | No |
 
-Rules for Phase 1:
+Rules:
 
-- **Only run what the repo actually has.** If there is no format script, skip it —
-  do not invent one. `shared`'s lint is a deliberate no-op; that is not a failure.
-- **Auto-fix only the mechanical, reversible things** (formatting, import order,
-  trivially auto-fixable lint). For anything requiring a judgement call (a type
-  error, a failing test, a logic-level lint error), fix it deliberately and
-  explain what you changed — never silence it.
-- **Re-run after fixing.** If Phase 1 changed files, re-run lint/typecheck to
-  confirm the fix did not introduce a new problem.
-- If a check **cannot** be run here (needs a service, a DB, a browser), say so
-  explicitly rather than reporting it as passed. CI will still run it.
+- Only run what the repo has. No format script means no format step.
+- Auto-fix only the mechanical, reversible things. Anything needing judgement
+  (a type error, a failing test, a logic lint error) you fix deliberately and
+  explain.
+- Re-run after fixing. A fix must not introduce a new failure.
+- If a check cannot run here (needs a database, a browser, a service), say so
+  and mark it deferred to CI. Never report it as passed.
 
----
+## Step 2: Commit the fixes
 
-# Phase 2: Diff review against the repo's rules (report-only)
+If Step 1 changed files, commit them in their own commit, signed and signed
+off, with the `(preflight)` scope:
 
-Walk the changed lines — not the whole repo — and check each against the rules you
-read in Step 0. This is where you catch what lint can't. Report findings; do not
-silently rewrite (the point is a reviewable list). The high-signal checks in this
-monorepo, straight from `security-boundaries.md`:
-
-1. **Secrets.** No key/token/password/bearer value in tracked source, tests,
-   READMEs, or example files — not even as an `env || 'literal'` fallback. Example
-   files carry placeholders only.
-2. **Mass assignment.** No `req.body` inserted/updated directly — an allowlist of
-   writable fields only.
-3. **PostgREST `.or()` / filter injection.** User input must be sanitised before it
-   reaches a `.or()` filter, a constructed SQL string, an ICS line, or a built URL.
-4. **Enum / string-union validation.** Values that must be one of a known set are
-   checked against that set before use, not trusted from the request.
-5. **Service-role null-guards.** A service-role client bypasses RLS — guard for the
-   null/absent case so a missing value can't widen access.
-6. **Shell safety.** No `child_process.exec`, `execSync` with a single string, or
-   `spawn` with `shell: true` outside the repo's sanctioned wrapper
-   (`packages/api/src/lib/safe-exec.ts`). Never build a shell string from user input.
-7. **Path-param / ICS CR-LF / SSRF.** Validate path params; strip CR/LF from values
-   interpolated into ICS lines; validate the host of any URL you construct/fetch.
-8. **Rate-limiting.** Public POST endpoints are rate-limited.
-9. **GitHub Actions.** No widened `permissions:` block and no action unpinned from
-   its commit SHA without a stated reason.
-10. **Radix singleton.** No `@radix-ui/themes` imported directly inside a module
-    file (it duplicates the singleton in prod and crashes `useThemeContext`).
-11. **No gate weakened to pass.** A disabled rule/validator/CI gate is a finding.
-
-Also apply anything specific the repo's own `CLAUDE.md` adds that is not in this
-list — the repo contract wins.
-
-For each changed file, ask: does this line cross a trust boundary (parses untrusted
-input, builds a query/command/URL from user data, handles a credential, enforces
-authz)? If yes, verify it against the matching rule above. If a repo ships the
-`pragma:security` skill, prefer running that over eyeballing — it is the validator
-these rules were written for.
-
----
-
-# Output
-
-Produce a compact report, not prose:
-
-```
-PREFLIGHT — <repo> @ <short-sha>
-Phase 1 (mechanical):
-  ✓ typecheck   ✓ lint (2 files auto-formatted)   ✓ build   ⚠ tests: 1 skipped (needs DB — CI will run)
-Phase 2 (rules):
-  ✗ packages/api/src/routes/foo.ts:41 — inserts req.body directly (mass assignment). Use a writable-field allowlist.
-  ✓ no secrets, no unsafe shell, no unpinned actions, no .or() injection
-Verdict: NOT READY — 1 blocking finding above. Fix before handoff.
+```bash
+git commit -s -S -m "fix(preflight): <what the checks reported>"
 ```
 
-- **Auto-fixes you applied** in Phase 1 are already in the working tree; list them.
-- **Phase 2 findings** are report-only — fix the blocking ones, then re-run
-  preflight until the verdict is READY.
-- If a check couldn't run in this environment, mark it `⚠ (deferred to CI)` — never
-  claim a check passed that you did not run.
+The `(preflight)` scope is what the plugin's push gate accepts after the
+review stamp. Use `style(preflight):` or `test(preflight):` where that is the
+truer type; the scope is what matters. Do not rerun the review round on these
+commits.
+
+## Step 3: Commit shape
+
+```bash
+git log --format='%G? %h %s' "$(git merge-base origin/main HEAD)..HEAD"
+git log --format=%B "$(git merge-base origin/main HEAD)..HEAD" | grep -c '^Signed-off-by:'
+```
+
+- Every commit has a good signature (`G`, or `U` when the key is not in the
+  local trust database).
+- Every commit carries a `Signed-off-by:` trailer.
+- Every subject is `type(scope): description`, lower case, under 72 characters.
+- No commit message carries an AI authorship trailer.
+
+A commit that fails these needs an amend or an interactive rebase. The push
+gate refuses a rewritten branch, so if you rewrite history here, run the
+review round again before pushing.
+
+## Step 4: Report
+
+```text
+PREFLIGHT  <repo> @ <short-sha>  (<branch>, N commits ahead of origin/main)
+  typecheck   ok
+  lint        ok (2 files auto-fixed, committed as a1b2c3d)
+  build       ok
+  tests       deferred to CI (needs Postgres)
+  shell audit ok
+  commits     ok (signed, signed off, conventional)
+Verdict: READY TO PUSH
+```
+
+Or `Verdict: NOT READY` with the failing lines above it. Never claim a check
+passed that you did not run.
